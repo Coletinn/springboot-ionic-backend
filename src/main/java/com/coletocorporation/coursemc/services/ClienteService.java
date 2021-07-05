@@ -16,7 +16,6 @@ import com.coletocorporation.coursemc.domain.Endereco;
 import com.coletocorporation.coursemc.domain.enums.TipoCliente;
 import com.coletocorporation.coursemc.dto.ClienteDTO;
 import com.coletocorporation.coursemc.dto.ClienteNewDTO;
-import com.coletocorporation.coursemc.repositories.CidadeRepository;
 import com.coletocorporation.coursemc.repositories.ClienteRepository;
 import com.coletocorporation.coursemc.repositories.EnderecoRepository;
 import com.coletocorporation.coursemc.services.exceptions.DataIntegrityException;
@@ -27,9 +26,6 @@ public class ClienteService {
 	
 	@Autowired
 	private ClienteRepository repo;
-	
-	@Autowired
-	private CidadeRepository cidadeRepository;
 	
 	@Autowired
 	private EnderecoRepository enderecoRepository;
