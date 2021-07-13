@@ -14,11 +14,14 @@ import org.springframework.stereotype.Service;
 import com.coletocorporation.coursemc.domain.Cidade;
 import com.coletocorporation.coursemc.domain.Cliente;
 import com.coletocorporation.coursemc.domain.Endereco;
+import com.coletocorporation.coursemc.domain.enums.Perfil;
 import com.coletocorporation.coursemc.domain.enums.TipoCliente;
 import com.coletocorporation.coursemc.dto.ClienteDTO;
 import com.coletocorporation.coursemc.dto.ClienteNewDTO;
 import com.coletocorporation.coursemc.repositories.ClienteRepository;
 import com.coletocorporation.coursemc.repositories.EnderecoRepository;
+import com.coletocorporation.coursemc.security.UserSS;
+import com.coletocorporation.coursemc.services.exceptions.AuthorizationException;
 import com.coletocorporation.coursemc.services.exceptions.DataIntegrityException;
 import com.coletocorporation.coursemc.services.exceptions.ObjectNotFoundException;
 
@@ -34,10 +37,16 @@ public class ClienteService {
 	@Autowired
 	private EnderecoRepository enderecoRepository;
 
-	public Cliente find(Integer id) {
+public Cliente find(Integer id) {
+		
+		UserSS user = UserService.authenticated();
+		if (user==null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
 		Optional<Cliente> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
-		"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
+				"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
 	}
 	
 	public Cliente insert(Cliente obj) {

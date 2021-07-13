@@ -1,6 +1,7 @@
 package com.coletocorporation.coursemc.security;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.servlet.FilterChain;
@@ -19,27 +20,29 @@ import com.coletocorporation.coursemc.dto.CredenciaisDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-	
-	private AuthenticationManager authenticationManager;
-	
-	private JWTUtil jwtUtil;
-	
-	public JWTAuthenticationFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
-		this.authenticationManager = authenticationManager;
-		this.jwtUtil = jwtUtil;
-	}
 
+	private AuthenticationManager authenticationManager;
+    
+    private JWTUtil jwtUtil;
+
+    public JWTAuthenticationFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
+    	setAuthenticationFailureHandler(new JWTAuthenticationFailureHandler());
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+    }
+	
 	@Override
-	public Authentication attemptAuthentication(HttpServletRequest req, 
-												HttpServletResponse res) throws AuthenticationException {
-		
+    public Authentication attemptAuthentication(HttpServletRequest req,
+                                                HttpServletResponse res) throws AuthenticationException {
+
 		try {
-			CredenciaisDTO creds = new ObjectMapper().readValue(req.getInputStream(), CredenciaisDTO.class);
-			
-			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getSenha());
-			
-			Authentication auth = authenticationManager.authenticate(authToken);
-			return auth;
+			CredenciaisDTO creds = new ObjectMapper()
+	                .readValue(req.getInputStream(), CredenciaisDTO.class);
+	
+	        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getSenha(), new ArrayList<>());
+	        
+	        Authentication auth = authenticationManager.authenticate(authToken);
+	        return auth;
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -47,17 +50,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	}
 	
 	@Override
-	protected void successfulAuthentication(HttpServletRequest req, 
-											HttpServletResponse res, 
-											FilterChain chain, 
-											Authentication auth) throws IOException, ServletException {
-		
+    protected void successfulAuthentication(HttpServletRequest req,
+                                            HttpServletResponse res,
+                                            FilterChain chain,
+                                            Authentication auth) throws IOException, ServletException {
+	
 		String username = ((UserSS) auth.getPrincipal()).getUsername();
-		String token = jwtUtil.generateToken(username);
-		res.addHeader("Authorization", "Bearer " + token);
+        String token = jwtUtil.generateToken(username);
+        res.addHeader("Authorization", "Bearer " + token);
+        res.addHeader("access-control-expose-headers", "Authorization");
 	}
 	
-	@SuppressWarnings("unused")
 	private class JWTAuthenticationFailureHandler implements AuthenticationFailureHandler {
 		 
         @Override
@@ -76,5 +79,5 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 + "\"message\": \"Email ou senha inválidos\", "
                 + "\"path\": \"/login\"}";
         }
-	}
+    }
 }
